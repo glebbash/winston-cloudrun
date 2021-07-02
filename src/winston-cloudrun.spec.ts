@@ -56,16 +56,24 @@ describe('winston-cloudrun-config', () => {
       const dateSpy = jest.spyOn(Date.prototype, 'toISOString');
 
       const traceId = 'traceId';
-      const format = getCloudLoggingFormat(() => traceId);
+      const spanId = 'spanId';
+      const traceSampled = false;
+      const format = getCloudLoggingFormat(() => ({
+        traceId,
+        spanId,
+        traceSampled,
+      }));
       const transformed = format?.transform(input);
 
       expect(transformed).toEqual({
         message: input.message,
         severity: 'INFO',
 
-        trace: traceId,
-        // current date in ISO format
-        time: dateSpy.mock.results[0].value,
+        'logging.googleapis.com/spanId': spanId,
+        'logging.googleapis.com/trace': traceId,
+        'logging.googleapis.com/trace_sampled': traceSampled,
+
+        time: dateSpy.mock.results[0].value, // current date in ISO format
 
         // winston internal stringified version of data
         [Symbol.for('message')]: transformed?.[Symbol.for('message') as never],
