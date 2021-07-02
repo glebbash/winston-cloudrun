@@ -7,7 +7,7 @@ export type WinstonCloudRunConfig = { production: boolean; getTrace?: GetTraceFn
 /**
  * Creates Winston format that specifies time and renames level to severity
  */
-export function getCloudLoggingFormat(getTrace?: GetTraceFn): Format {
+export function getCloudLoggingFormat({ getTrace }: { getTrace?: GetTraceFn } = {}): Format {
   return format.combine(
     format.errors({ stack: true }),
     format((info) => {
@@ -35,7 +35,7 @@ export function getWinstonCloudRunConfig({
 }: WinstonCloudRunConfig): LoggerOptions {
   return {
     level: production ? 'info' : 'debug',
-    format: getCloudLoggingFormat(getTrace),
+    format: getCloudLoggingFormat({ getTrace }),
     transports: [new transports.Console()],
   };
 }

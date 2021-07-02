@@ -56,7 +56,7 @@ describe('winston-cloudrun-config', () => {
       const dateSpy = jest.spyOn(Date.prototype, 'toISOString');
 
       const traceId = 'traceId';
-      const format = getCloudLoggingFormat(() => traceId);
+      const format = getCloudLoggingFormat({ getTrace: () => traceId });
       const transformed = format?.transform(input);
 
       expect(transformed).toEqual({
