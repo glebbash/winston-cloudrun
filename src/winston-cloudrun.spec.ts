@@ -58,11 +58,13 @@ describe('winston-cloudrun-config', () => {
       const traceId = 'traceId';
       const spanId = 'spanId';
       const traceSampled = false;
-      const format = getCloudLoggingFormat(() => ({
-        traceId,
-        spanId,
-        traceSampled,
-      }));
+      const format = getCloudLoggingFormat({
+        getTrace: () => ({
+          traceId,
+          spanId,
+          traceSampled,
+        }),
+      });
       const transformed = format?.transform(input);
 
       expect(transformed).toEqual({
