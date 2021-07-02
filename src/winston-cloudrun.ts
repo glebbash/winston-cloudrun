@@ -1,12 +1,23 @@
 import { Format } from 'logform';
 import { format, LoggerOptions, transports } from 'winston';
 
-export type WinstonCloudRunConfig = { production: boolean };
+export type GetTraceFn = () => { traceId: string; spanId: string; traceSampled?: boolean };
+export type WinstonCloudRunConfig = { production: boolean; getTrace?: GetTraceFn };
+
+function getTraceInfo(getTrace: GetTraceFn) {
+  const { traceId, spanId, traceSampled = true } = getTrace();
+
+  return {
+    'logging.googleapis.com/trace': traceId,
+    'logging.googleapis.com/spanId': spanId,
+    'logging.googleapis.com/trace_sampled': traceSampled,
+  };
+}
 
 /**
  * Creates Winston format that specifies time and renames level to severity
  */
-export function getCloudLoggingFormat(): Format {
+export function getCloudLoggingFormat({ getTrace }: { getTrace?: GetTraceFn } = {}): Format {
   return format.combine(
     format.errors({ stack: true }),
     format((info) => {
@@ -14,6 +25,7 @@ export function getCloudLoggingFormat(): Format {
 
       return {
         ...data,
+        ...(getTrace && { ...getTraceInfo(getTrace) }),
         severity: level.toUpperCase(),
         time: new Date().toISOString(),
       } as never;
@@ -27,10 +39,13 @@ export function getCloudLoggingFormat(): Format {
  *
  * Log level is set like this: ```production ? 'info' : 'debug'```
  */
-export function getWinstonCloudRunConfig({ production }: WinstonCloudRunConfig): LoggerOptions {
+export function getWinstonCloudRunConfig({
+  production,
+  getTrace,
+}: WinstonCloudRunConfig): LoggerOptions {
   return {
     level: production ? 'info' : 'debug',
-    format: getCloudLoggingFormat(),
+    format: getCloudLoggingFormat({ getTrace }),
     transports: [new transports.Console()],
   };
 }
