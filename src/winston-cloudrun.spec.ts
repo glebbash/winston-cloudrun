@@ -39,8 +39,7 @@ describe('winston-cloudrun-config', () => {
         message: input.message,
         severity: 'INFO',
 
-        // current date in ISO format
-        time: dateSpy.mock.results[0].value,
+        time: dateSpy.mock.results[0].value, // current date in ISO format
 
         // winston internal stringified version of data
         [Symbol.for('message')]: transformed?.[Symbol.for('message') as never],
