@@ -4,16 +4,6 @@ import { format, LoggerOptions, transports } from 'winston';
 export type GetTraceFn = () => { traceId: string; spanId: string; traceSampled?: boolean };
 export type WinstonCloudRunConfig = { production: boolean; getTrace?: GetTraceFn };
 
-function getTraceInfo(getTrace: GetTraceFn) {
-  const { traceId, spanId, traceSampled = true } = getTrace();
-
-  return {
-    'logging.googleapis.com/trace': traceId,
-    'logging.googleapis.com/spanId': spanId,
-    'logging.googleapis.com/trace_sampled': traceSampled,
-  };
-}
-
 /**
  * Creates Winston format that specifies time and renames level to severity
  */
@@ -47,5 +37,15 @@ export function getWinstonCloudRunConfig({
     level: production ? 'info' : 'debug',
     format: getCloudLoggingFormat({ getTrace }),
     transports: [new transports.Console()],
+  };
+}
+
+function getTraceInfo(getTrace: GetTraceFn) {
+  const { traceId, spanId, traceSampled = true } = getTrace();
+
+  return {
+    'logging.googleapis.com/trace': traceId,
+    'logging.googleapis.com/spanId': spanId,
+    'logging.googleapis.com/trace_sampled': traceSampled,
   };
 }
