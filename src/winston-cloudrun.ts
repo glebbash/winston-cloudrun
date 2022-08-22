@@ -2,12 +2,20 @@ import { Format } from 'logform';
 import { format, LoggerOptions, transports } from 'winston';
 
 export type GetTraceFn = () => { traceId: string; spanId: string; traceSampled?: boolean };
-export type WinstonCloudRunConfig = { production: boolean; getTrace?: GetTraceFn };
+export type GetLabelsFn = () => Record<string, string>;
+export type WinstonCloudRunConfig = {
+  production: boolean;
+  getTrace?: GetTraceFn;
+  getLabels?: GetLabelsFn;
+};
 
 /**
  * Creates Winston format that specifies time and renames level to severity
  */
-export function getCloudLoggingFormat({ getTrace }: { getTrace?: GetTraceFn } = {}): Format {
+export function getCloudLoggingFormat({
+  getTrace,
+  getLabels,
+}: Omit<WinstonCloudRunConfig, 'production'> = {}): Format {
   return format.combine(
     format.errors({ stack: true }),
     format((info) => {
@@ -18,6 +26,10 @@ export function getCloudLoggingFormat({ getTrace }: { getTrace?: GetTraceFn } = 
         ...(getTrace && { ...getTraceInfo(getTrace) }),
         severity: level.toUpperCase(),
         time: new Date().toISOString(),
+        ...(getTrace && { ...getTraceInfo(getTrace) }),
+        ...(getLabels && {
+          'logging.googleapis.com/labels': getLabels(),
+        }),
       } as never;
     })(),
     format.json()

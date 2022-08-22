@@ -46,6 +46,37 @@ describe('winston-cloudrun-config', () => {
       });
     });
 
+    it('transforms input correctly (with labels)', () => {
+      const input: TransformableInfo = {
+        level: 'info',
+        message: 'hello there',
+      };
+
+      const labels = {
+        'Tenant-Id': 'abc',
+        'Correlation-Id': 'def',
+      };
+
+      const dateSpy = jest.spyOn(Date.prototype, 'toISOString');
+
+      const format = getCloudLoggingFormat({
+        getLabels: () => labels,
+      });
+      const transformed = format?.transform(input);
+
+      expect(transformed).toEqual({
+        message: input.message,
+        severity: 'INFO',
+
+        'logging.googleapis.com/labels': labels,
+
+        time: dateSpy.mock.results[0].value, // current date in ISO format
+
+        // winston internal stringified version of data
+        [Symbol.for('message')]: transformed?.[Symbol.for('message') as never],
+      });
+    });
+
     it('transforms input correctly (with tracing)', () => {
       const input: TransformableInfo = {
         level: 'info',
