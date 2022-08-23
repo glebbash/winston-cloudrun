@@ -44,10 +44,11 @@ export function getCloudLoggingFormat({
 export function getWinstonCloudRunConfig({
   production,
   getTrace,
+  getLabels,
 }: WinstonCloudRunConfig): LoggerOptions {
   return {
     level: production ? 'info' : 'debug',
-    format: getCloudLoggingFormat({ getTrace }),
+    format: getCloudLoggingFormat({ getTrace, getLabels }),
     transports: [new transports.Console()],
   };
 }
