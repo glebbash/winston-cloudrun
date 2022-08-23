@@ -2,7 +2,7 @@ import { Format } from 'logform';
 import { format, LoggerOptions, transports } from 'winston';
 
 export type GetTraceFn = () => { traceId: string; spanId: string; traceSampled?: boolean };
-export type GetLabelsFn = () => Record<string, string>;
+export type GetLabelsFn = () => Record<string, string | undefined>;
 export type WinstonCloudRunConfig = {
   production: boolean;
   getTrace?: GetTraceFn;
